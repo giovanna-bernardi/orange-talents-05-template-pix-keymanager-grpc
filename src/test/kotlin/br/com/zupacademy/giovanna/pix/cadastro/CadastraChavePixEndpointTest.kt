@@ -23,6 +23,7 @@ import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -158,9 +159,31 @@ internal class CadastraChavePixEndpointTest(
         with(thrown){
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Dados inválidos", status.description)
-            MatcherAssert.assertThat(violations(), Matchers.containsInAnyOrder(
+            MatcherAssert.assertThat(violations(), containsInAnyOrder(
                 Pair("chave", "chave Pix inválida (CPF)")
-            ))
+            )
+            )
+        }
+    }
+
+    @Test
+    fun `nao deve cadastrar chave pix quando os parametros forem invalidos`() {
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.cadastra(CadastraChavePixRequest.newBuilder().build())
+        }
+
+        // validação
+        with(thrown) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
+            MatcherAssert.assertThat(violations(), containsInAnyOrder(
+                Pair("clienteId", "não deve estar em branco"),
+                Pair("clienteId", "formato de UUID inválido"),
+                Pair("tipoConta", "não deve ser nulo"),
+                Pair("tipoChave", "não deve ser nulo"),
+            )
+            )
         }
     }
 

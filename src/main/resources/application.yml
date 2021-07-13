@@ -28,3 +28,6 @@ itau:
 bcb:
   pix:
     url: ${BCB_PIX_URL:`http://localhost:8082`}
+
+pix:
+  secret: ${SENSITIVE_DATA_SECRET:89794b621a313bb59eed0d9f0f4e8205}

@@ -14,13 +14,11 @@ class RemoveChavePixEndpoint (private val gerenciadorExclusaoChavePix: Gerenciad
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun remove(request: RemoveChavePixRequest, responseObserver: StreamObserver<RemoveChavePixResponse>) {
-        // converter request em modelo
         val chaveRequest = request.toChaveRemocaoRequest()
 
         // validar e excluir do banco
         val chavePixCadastrada = gerenciadorExclusaoChavePix.tentaExcluir(chaveRequest)
 
-        // retornar uma resposta
         responseObserver.onNext(RemoveChavePixResponse.newBuilder()
             .setRemovido(true)
             .build())
