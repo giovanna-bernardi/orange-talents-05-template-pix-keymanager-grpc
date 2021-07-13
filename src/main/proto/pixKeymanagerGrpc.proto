@@ -6,8 +6,12 @@ option java_outer_classname = "PixKeymanagerGrpc";
 
 package br.com.zupacademy.giovanna;
 
-service PixKeymanagerService {
+service PixKeyRegistrationManagerService {
   rpc cadastra (CadastraChavePixRequest) returns (CadastraChavePixResponse) {}
+}
+
+service PixKeyExclusionManagerService {
+  rpc remove (RemoveChavePixRequest) returns (RemoveChavePixResponse) {}
 }
 
 enum TipoConta {
@@ -24,6 +28,9 @@ enum TipoChave {
   ALEATORIA = 4;
 }
 
+/**
+ * Cadastra chave
+ */
 message CadastraChavePixRequest {
   string clienteId = 1;
   TipoChave tipoChave = 2;
@@ -33,4 +40,16 @@ message CadastraChavePixRequest {
 
 message CadastraChavePixResponse {
   string pixId = 1;
+}
+
+/**
+ * Remove chave
+ */
+message RemoveChavePixRequest {
+  string pixId = 1;
+  string clienteId = 2;
+}
+
+message RemoveChavePixResponse {
+  bool removido = 1;
 }

@@ -1,10 +1,7 @@
 package br.com.zupacademy.giovanna.pix.cadastro
 
-import br.com.zupacademy.giovanna.CadastraChavePixRequest
-import br.com.zupacademy.giovanna.PixKeymanagerServiceGrpc
+import br.com.zupacademy.giovanna.*
 import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
-import br.com.zupacademy.giovanna.TipoChave
-import br.com.zupacademy.giovanna.TipoConta
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import br.com.zupacademy.giovanna.conta.ContaResponse
 import br.com.zupacademy.giovanna.conta.InstituicaoResponse
@@ -43,7 +40,7 @@ import javax.validation.ConstraintViolationException
 @MicronautTest(transactional = false)
 internal class CadastraChavePixEndpointTest(
     val repository: ChavePixRepository,
-    val grpcClient: PixKeymanagerServiceGrpc.PixKeymanagerServiceBlockingStub
+    val grpcClient: PixKeyRegistrationManagerServiceGrpc.PixKeyRegistrationManagerServiceBlockingStub
 ) {
 
     // Teste de integração. Testando com o cliente Http.
@@ -207,8 +204,8 @@ internal class CadastraChavePixEndpointTest(
     @Factory
     class Clients {
         @Bean
-        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): PixKeymanagerServiceGrpc.PixKeymanagerServiceBlockingStub {
-            return PixKeymanagerServiceGrpc.newBlockingStub(channel)
+        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): PixKeyRegistrationManagerServiceGrpc.PixKeyRegistrationManagerServiceBlockingStub {
+            return PixKeyRegistrationManagerServiceGrpc.newBlockingStub(channel)
         }
     }
 

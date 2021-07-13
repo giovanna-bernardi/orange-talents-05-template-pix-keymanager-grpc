@@ -46,6 +46,10 @@ dependencies {
     implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
 
+
+    // https://mvnrepository.com/artifact/org.jasypt/jasypt
+    compile group: 'org.jasypt', name: 'jasypt', version: '1.9.3'
+
     /* Tests */
     kaptTest "io.micronaut:micronaut-inject-java"
     testImplementation("org.mockito:mockito-core")
