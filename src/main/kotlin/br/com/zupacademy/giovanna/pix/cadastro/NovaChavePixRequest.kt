@@ -1,7 +1,5 @@
 package br.com.zupacademy.giovanna.pix.cadastro
 
-import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
-import br.com.zupacademy.giovanna.TipoChave
 import br.com.zupacademy.giovanna.TipoConta
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import br.com.zupacademy.giovanna.pix.ChavePixEntity
@@ -12,6 +10,7 @@ import java.util.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
+import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
 
 @ValidPixKey
 @Introspected
@@ -33,7 +32,7 @@ data class NovaChavePixRequest(
     fun toModel(conta: ContaEntity) : ChavePixEntity {
         return ChavePixEntity(
             clienteId = UUID.fromString(this.clienteId),
-            tipoChave = TipoChave.valueOf(this.tipoChave!!.name),
+            tipoChave = TipoDeChave.valueOf(this.tipoChave!!.name),
             valorChave = if(this.valorChave.isNullOrBlank()) UUID.randomUUID().toString() else this.valorChave,
             tipoConta = this.tipoConta!!,
             conta = conta

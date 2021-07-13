@@ -38,7 +38,7 @@ class ValidPixKeyValidator : ConstraintValidator<ValidPixKey, NovaChavePixReques
             context.disableDefaultConstraintViolation()
             context
                 .buildConstraintViolationWithTemplate(context.defaultConstraintMessageTemplate)
-                .addPropertyNode(ValidPixKey::class.simpleName).addConstraintViolation()
+                .addPropertyNode("chave").addConstraintViolation()
         }
 
         return valido

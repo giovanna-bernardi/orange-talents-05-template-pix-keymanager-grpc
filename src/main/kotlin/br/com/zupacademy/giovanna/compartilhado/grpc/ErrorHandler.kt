@@ -1,4 +1,4 @@
-package br.com.zupacademy.giovanna.compartilhado.handlers
+package br.com.zupacademy.giovanna.compartilhado.grpc
 
 import io.micronaut.aop.Around
 import javax.validation.Constraint
@@ -7,6 +7,6 @@ import kotlin.annotation.AnnotationTarget.*
 
 @MustBeDocumented
 @Retention(RUNTIME)
-@Target(CLASS, FIELD, TYPE)
+@Target(CLASS, FIELD, TYPE, FILE, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER)
 @Around
-annotation class ExceptionHandler
+annotation class ErrorHandler

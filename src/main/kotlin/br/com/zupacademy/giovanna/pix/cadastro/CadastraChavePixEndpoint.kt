@@ -1,14 +1,14 @@
 package br.com.zupacademy.giovanna.pix.cadastro
 
 import br.com.zupacademy.giovanna.*
-import br.com.zupacademy.giovanna.compartilhado.handlers.ExceptionHandler
+import br.com.zupacademy.giovanna.compartilhado.grpc.ErrorHandler
 import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
 import javax.inject.Singleton
 
 @Singleton
-@ExceptionHandler
+@ErrorHandler
 class CadastraChavePixEndpoint(val gerenciadorCadastroChavePix: GerenciadorCadastroChavePix)
     : PixKeymanagerServiceGrpc.PixKeymanagerServiceImplBase() {
 

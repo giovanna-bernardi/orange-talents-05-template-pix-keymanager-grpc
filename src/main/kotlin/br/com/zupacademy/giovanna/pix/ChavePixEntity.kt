@@ -1,6 +1,6 @@
 package br.com.zupacademy.giovanna.pix
 
-import br.com.zupacademy.giovanna.TipoChave
+import br.com.zupacademy.giovanna.pix.TipoChave
 import br.com.zupacademy.giovanna.TipoConta
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import java.time.LocalDateTime
