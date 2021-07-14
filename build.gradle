@@ -45,10 +45,10 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
-
-
+    implementation("io.micronaut.xml:micronaut-jackson-xml")
     // https://mvnrepository.com/artifact/org.jasypt/jasypt
-    compile group: 'org.jasypt', name: 'jasypt', version: '1.9.3'
+    implementation("org.jasypt:jasypt:1.9.3")
+
 
     /* Tests */
     kaptTest "io.micronaut:micronaut-inject-java"

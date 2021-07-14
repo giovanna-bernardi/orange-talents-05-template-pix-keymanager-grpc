@@ -29,5 +29,8 @@ bcb:
   pix:
     url: ${BCB_PIX_URL:`http://localhost:8082`}
 
-pix:
-  secret: ${SENSITIVE_DATA_SECRET:89794b621a313bb59eed0d9f0f4e8205}
+cpf:
+  secret: ${SENSITIVE_DATA_CPF_SECRET:89794b621a313bb59eed0d9f0f4e8205}
+
+keyvalue:
+  secret: ${SENSITIVE_DATA_KEYVALUE_SECRET:14d777febb71c53630e9e843bedbd4d8}

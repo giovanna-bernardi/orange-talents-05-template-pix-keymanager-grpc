@@ -6,11 +6,11 @@ import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
 @Converter
-class SensitiveDataConverter: AttributeConverter<String, String> {
+class SensitiveDataCPFConverter: AttributeConverter<String, String> {
 
     private val textEncryptor: BasicTextEncryptor = BasicTextEncryptor()
     init{
-        textEncryptor.setPassword("\${pix.secret}")
+        textEncryptor.setPassword("\${cpf.secret}")
     }
 
     override fun convertToDatabaseColumn(attribute: String?): String {

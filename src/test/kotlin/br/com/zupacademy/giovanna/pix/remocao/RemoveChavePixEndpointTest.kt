@@ -2,7 +2,7 @@ package br.com.zupacademy.giovanna.pix.remocao
 
 import br.com.zupacademy.giovanna.PixKeyExclusionManagerServiceGrpc
 import br.com.zupacademy.giovanna.RemoveChavePixRequest
-import br.com.zupacademy.giovanna.TipoConta
+import br.com.zupacademy.giovanna.pix.TipoConta
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import br.com.zupacademy.giovanna.pix.ChavePixEntity
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
-@MicronautTest(transactional = false, transactionMode = TransactionMode.SINGLE_TRANSACTION)
+@MicronautTest(transactional = false)
 internal class RemoveChavePixEndpointTest(
     val repository: ChavePixRepository,
     val grpcClient: PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceBlockingStub
@@ -58,7 +58,7 @@ internal class RemoveChavePixEndpointTest(
         // validação
         with(response) {
             assertTrue(removido)
-            assertTrue(repository.findAll().isEmpty())
+            assertTrue(repository.findById(chave.id).isEmpty)
         }
     }
 

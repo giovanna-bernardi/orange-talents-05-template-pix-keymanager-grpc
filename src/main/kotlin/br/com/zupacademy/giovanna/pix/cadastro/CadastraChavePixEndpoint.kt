@@ -3,6 +3,7 @@ package br.com.zupacademy.giovanna.pix.cadastro
 import br.com.zupacademy.giovanna.*
 import br.com.zupacademy.giovanna.compartilhado.grpc.ErrorHandler
 import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
+import br.com.zupacademy.giovanna.pix.TipoConta as TipoDeConta
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
 import javax.inject.Singleton
@@ -40,6 +41,6 @@ fun CadastraChavePixRequest.toNovaChavePixRequest(): NovaChavePixRequest {
         clienteId = clienteId,
         tipoChave = if(tipoChave.equals(TipoChave.UNKNOWN_CHAVE)) null else TipoDeChave.valueOf(tipoChave.name),
         valorChave = valorChave,
-        tipoConta = if(tipoConta.equals(TipoConta.UNKNOWN_CONTA)) null else TipoConta.valueOf(tipoConta.name)
+        tipoConta = if(tipoConta.equals(TipoConta.UNKNOWN_CONTA)) null else TipoDeConta.valueOf(tipoConta.name)
     )
 }

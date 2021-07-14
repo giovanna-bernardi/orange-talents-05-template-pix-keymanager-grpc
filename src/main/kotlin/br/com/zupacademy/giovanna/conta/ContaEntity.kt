@@ -1,6 +1,6 @@
 package br.com.zupacademy.giovanna.conta
 
-import br.com.zupacademy.giovanna.compartilhado.SensitiveDataConverter
+import br.com.zupacademy.giovanna.compartilhado.SensitiveDataCPFConverter
 import javax.persistence.Column
 import javax.persistence.Convert
 import javax.persistence.Embeddable
@@ -18,7 +18,7 @@ class ContaEntity(
     val nomeTitular: String,
 
     @field:NotBlank
-    @Convert(converter = SensitiveDataConverter::class)
+    @Convert(converter = SensitiveDataCPFConverter::class)
     @Column(name = "conta_titular_cpf", nullable = false)
     val cpfTitular: String,
 
@@ -29,4 +29,8 @@ class ContaEntity(
     @field:NotBlank @field:Size(max = 6)
     @Column(name = "conta_numero", length = 6, nullable = false)
     val numeroConta: String
-)
+) {
+    companion object {
+        public val ITAU_UNIBANCO_ISPB: String = "60701190"
+    }
+}

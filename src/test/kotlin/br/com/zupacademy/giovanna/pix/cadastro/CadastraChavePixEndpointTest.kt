@@ -1,7 +1,6 @@
 package br.com.zupacademy.giovanna.pix.cadastro
 
 import br.com.zupacademy.giovanna.*
-import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import br.com.zupacademy.giovanna.conta.ContaResponse
 import br.com.zupacademy.giovanna.conta.InstituicaoResponse
@@ -18,21 +17,20 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.containsInAnyOrder
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.util.*
 import javax.inject.Inject
-import javax.validation.ConstraintViolationException
+import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
+import br.com.zupacademy.giovanna.pix.TipoConta as TipoDeConta
 
 /* Desabilitar o controle transacional por causa do gRPC Server radar
 * em uma Thread separada. Senão, não é possível preparar o cenário dentro
@@ -101,16 +99,18 @@ internal class CadastraChavePixEndpointTest(
 
         // Ação
         val thrown = assertThrows<StatusRuntimeException> {
-            grpcClient.cadastra(CadastraChavePixRequest.newBuilder()
-                .setClienteId(CLIENTE_ID.toString())
-                .setTipoChave(TipoChave.CPF)
-                .setValorChave("86135457004")
-                .setTipoConta(TipoConta.CONTA_CORRENTE)
-                .build())
+            grpcClient.cadastra(
+                CadastraChavePixRequest.newBuilder()
+                    .setClienteId(CLIENTE_ID.toString())
+                    .setTipoChave(TipoChave.CPF)
+                    .setValorChave("86135457004")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
         }
 
         // Validação
-        with(thrown){
+        with(thrown) {
             assertEquals(Status.ALREADY_EXISTS.code, status.code)
             assertEquals("A chave Pix '86135457004' já existe no banco", status.description)
         }
@@ -120,17 +120,24 @@ internal class CadastraChavePixEndpointTest(
     @Test
     fun `nao deve cadastrar chave pix quando nao encontrar dados da conta cliente`() {
         // Cenário - Mockar busca no Client Itau devolvendo status de não encontrado
-        Mockito.`when`(itauClient.buscaContaDoClientePorTipo(clienteId = CLIENTE_ID.toString(), tipo = "CONTA_CORRENTE"))
+        Mockito.`when`(
+            itauClient.buscaContaDoClientePorTipo(
+                clienteId = CLIENTE_ID.toString(),
+                tipo = "CONTA_CORRENTE"
+            )
+        )
             .thenReturn(HttpResponse.notFound())
 
         // Ação
         val thrown = assertThrows<StatusRuntimeException> {
-            grpcClient.cadastra(CadastraChavePixRequest.newBuilder()
-                .setClienteId(CLIENTE_ID.toString())
-                .setTipoChave(TipoChave.CPF)
-                .setValorChave("86135457004")
-                .setTipoConta(TipoConta.CONTA_CORRENTE)
-                .build())
+            grpcClient.cadastra(
+                CadastraChavePixRequest.newBuilder()
+                    .setClienteId(CLIENTE_ID.toString())
+                    .setTipoChave(TipoChave.CPF)
+                    .setValorChave("86135457004")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
         }
 
         // Validação
@@ -147,21 +154,24 @@ internal class CadastraChavePixEndpointTest(
         // Cenário - Cadastrar chave inválida
         // Ação
         val thrown = assertThrows<StatusRuntimeException> {
-            grpcClient.cadastra(CadastraChavePixRequest.newBuilder()
-                .setClienteId(CLIENTE_ID.toString())
-                .setTipoChave(TipoChave.CPF)
-                .setValorChave("861.354.a.570-04")
-                .setTipoConta(TipoConta.CONTA_CORRENTE)
-                .build())
+            grpcClient.cadastra(
+                CadastraChavePixRequest.newBuilder()
+                    .setClienteId(CLIENTE_ID.toString())
+                    .setTipoChave(TipoChave.CPF)
+                    .setValorChave("861.354.a.570-04")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
         }
 
         // Validação
-        with(thrown){
+        with(thrown) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Dados inválidos", status.description)
-            MatcherAssert.assertThat(violations(), containsInAnyOrder(
-                Pair("chave", "chave Pix inválida (CPF)")
-            )
+            MatcherAssert.assertThat(
+                violations(), containsInAnyOrder(
+                    Pair("chave", "chave Pix inválida (CPF)")
+                )
             )
         }
     }
@@ -177,12 +187,13 @@ internal class CadastraChavePixEndpointTest(
         with(thrown) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Dados inválidos", status.description)
-            MatcherAssert.assertThat(violations(), containsInAnyOrder(
-                Pair("clienteId", "não deve estar em branco"),
-                Pair("clienteId", "formato de UUID inválido"),
-                Pair("tipoConta", "não deve ser nulo"),
-                Pair("tipoChave", "não deve ser nulo"),
-            )
+            MatcherAssert.assertThat(
+                violations(), containsInAnyOrder(
+                    Pair("clienteId", "não deve estar em branco"),
+                    Pair("clienteId", "formato de UUID inválido"),
+                    Pair("tipoConta", "não deve ser nulo"),
+                    Pair("tipoChave", "não deve ser nulo"),
+                )
             )
         }
     }
@@ -206,7 +217,7 @@ internal class CadastraChavePixEndpointTest(
             clienteId = clienteId,
             tipoChave = tipo,
             valorChave = chave,
-            tipoConta = TipoConta.CONTA_CORRENTE,
+            tipoConta = TipoDeConta.CONTA_CORRENTE,
             conta = ContaEntity(
                 nomeInstituicao = "UNIBANCO ITAU SA",
                 nomeTitular = "Yuri Matheus",
