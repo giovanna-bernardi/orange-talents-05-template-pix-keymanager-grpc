@@ -50,9 +50,12 @@ class GerenciadorCadastroChavePix(
             val bcbResponse = bcbClient.insert(CreatePixKeyRequest.of(chavePix))
 
             // Devolve 201 se sucesso
-            if (bcbResponse.status != HttpStatus.CREATED)
+            if (bcbResponse.status != HttpStatus.CREATED) {
+                // porque não quero usar @Transactional com chamada a sistema externo e
+                // não acho que deva salvar na minha aplicação caso ocorra erro ao tentar salvar no sistema externo
+                chavePixRepository.delete(chavePix)
                 throw IllegalStateException("Erro ao registrar chave Pix no Banco Central do Brasil (BCB)")
-
+            }
             // atualizar a chave, se ALEATORIA, com o valor vindo do BCB
             if (chavePix.updateKeyValue(bcbResponse.body().key))
                 chavePixRepository.update(chavePix)

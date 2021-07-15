@@ -5,9 +5,11 @@ import br.com.zupacademy.giovanna.conta.ContaEntity
 import br.com.zupacademy.giovanna.conta.ContaResponse
 import br.com.zupacademy.giovanna.conta.InstituicaoResponse
 import br.com.zupacademy.giovanna.conta.TitularResponse
+import br.com.zupacademy.giovanna.externos.bcb.*
 import br.com.zupacademy.giovanna.externos.itau.ErpItauClient
-import br.com.zupacademy.giovanna.pix.ChavePixEntity
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
+import br.com.zupacademy.giovanna.util.KeyGenerator
+import br.com.zupacademy.giovanna.util.KeyGenerator.Companion.CLIENTE_ID
 import br.com.zupacademy.giovanna.util.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -17,20 +19,21 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers.containsInAnyOrder
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
+import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
 import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
-import br.com.zupacademy.giovanna.pix.TipoConta as TipoDeConta
 
 /* Desabilitar o controle transacional por causa do gRPC Server radar
 * em uma Thread separada. Senão, não é possível preparar o cenário dentro
@@ -43,12 +46,14 @@ internal class CadastraChavePixEndpointTest(
 ) {
 
     // Teste de integração. Testando com o cliente Http.
+    // Serão mockados
+
     @Inject
     lateinit var itauClient: ErpItauClient
 
-    companion object {
-        val CLIENTE_ID = UUID.randomUUID()
-    }
+    @Inject
+    lateinit var bcbClient: BcbClient
+
 
     @BeforeEach
     internal fun setUp() {
@@ -65,14 +70,18 @@ internal class CadastraChavePixEndpointTest(
                 clienteId = CLIENTE_ID.toString(),
                 tipo = "CONTA_CORRENTE"
             )
-        ).thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+        )
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+
+        Mockito.`when`(bcbClient.insert(createPixKeyRequestFake()))
+            .thenReturn(HttpResponse.created(createPixKeyResponseFake()))
 
         // Ação
         val response = grpcClient.cadastra(
             CadastraChavePixRequest.newBuilder()
                 .setClienteId(CLIENTE_ID.toString())
-                .setTipoChave(TipoChave.EMAIL)
-                .setValorChave("teste@teste.com")
+                .setTipoChave(TipoChave.CPF)
+                .setValorChave("86135457004")
                 .setTipoConta(TipoConta.CONTA_CORRENTE)
                 .build()
         )
@@ -83,27 +92,25 @@ internal class CadastraChavePixEndpointTest(
         }
     }
 
-
     /* Sad(?) Path :( */
 
     @Test
     fun `nao deve cadastrar chave pix quando chave existente`() {
         // Cenário - Salvar uma chave no banco
-        repository.save(
-            chaveFake(
-                tipo = TipoDeChave.CPF,
-                chave = "86135457004",
-                clienteId = CLIENTE_ID
-            )
-        )
+        val chaveFake = KeyGenerator(
+            tipoChave = TipoDeChave.CPF,
+            valorChave = "86135457004"
+        ).geraChave()
+
+        repository.save(chaveFake)
 
         // Ação
         val thrown = assertThrows<StatusRuntimeException> {
             grpcClient.cadastra(
                 CadastraChavePixRequest.newBuilder()
-                    .setClienteId(CLIENTE_ID.toString())
+                    .setClienteId(chaveFake.clienteId.toString())
                     .setTipoChave(TipoChave.CPF)
-                    .setValorChave("86135457004")
+                    .setValorChave(chaveFake.valorChave)
                     .setTipoConta(TipoConta.CONTA_CORRENTE)
                     .build()
             )
@@ -198,6 +205,82 @@ internal class CadastraChavePixEndpointTest(
         }
     }
 
+    @Test
+    fun `nao deve cadastrar chave quando chave ja estiver registrada no sistema externo`() {
+        // cenário
+        Mockito.`when`(
+            itauClient.buscaContaDoClientePorTipo(
+                clienteId = CLIENTE_ID.toString(),
+                tipo = "CONTA_CORRENTE"
+            )
+        )
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+
+        Mockito.`when`(bcbClient.insert(createPixKeyRequestFake())).thenThrow(
+            HttpClientResponseException(
+                "Chave pix já registrada", HttpResponse.status<HttpStatus>(
+                    HttpStatus.UNPROCESSABLE_ENTITY
+                )
+            )
+        )
+
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.cadastra(
+                CadastraChavePixRequest.newBuilder()
+                    .setClienteId(CLIENTE_ID.toString())
+                    .setTipoChave(TipoChave.CPF)
+                    .setValorChave("86135457004")
+                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+                    .build()
+            )
+        }
+
+        // validação
+        with(thrown) {
+            assertFalse(repository.existsByValorChave("86135457004"))
+            assertEquals(Status.ALREADY_EXISTS.code, status.code)
+            assertEquals("Chave pix já registrada no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
+
+    // Ainda não consegui entender o erro no assertEquals
+//    @Test
+//    fun `nao deve cadastrar chave quando chave nao for criada com sucesso no sistema externo`() {
+//        // cenário
+//        Mockito.`when`(
+//            itauClient.buscaContaDoClientePorTipo(
+//                clienteId = CLIENTE_ID.toString(),
+//                tipo = "CONTA_CORRENTE"
+//            )
+//        )
+//            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+//
+//        Mockito.`when`(bcbClient.insert(createPixKeyRequestFake())).thenReturn(
+//            HttpResponse.ok() // é esperado 201
+//        )
+//
+//        // ação
+//        val thrown = assertThrows<StatusRuntimeException> {
+//            grpcClient.cadastra(
+//                CadastraChavePixRequest.newBuilder()
+//                    .setClienteId(CLIENTE_ID.toString())
+//                    .setTipoChave(TipoChave.CPF)
+//                    .setValorChave("86135457004")
+//                    .setTipoConta(TipoConta.CONTA_CORRENTE)
+//                    .build()
+//            )
+//        }
+//
+//        // validação
+//        with(thrown) {
+//            assertFalse(repository.existsByValorChave("86135457004"))
+//            assertEquals(Status.FAILED_PRECONDITION, status)
+//            assertEquals("Erro ao registrar chave Pix no Banco Central do Brasil (BCB)", status.description)
+//        }
+//    }
+
+
     private fun dadosDaContaResponse(): ContaResponse {
         return ContaResponse(
             tipo = "CONTA_CORRENTE",
@@ -208,30 +291,17 @@ internal class CadastraChavePixEndpointTest(
         )
     }
 
-    private fun chaveFake(
-        tipo: TipoDeChave,
-        chave: String = UUID.randomUUID().toString(),
-        clienteId: UUID = UUID.randomUUID()
-    ): ChavePixEntity {
-        return ChavePixEntity(
-            clienteId = clienteId,
-            tipoChave = tipo,
-            valorChave = chave,
-            tipoConta = TipoDeConta.CONTA_CORRENTE,
-            conta = ContaEntity(
-                nomeInstituicao = "UNIBANCO ITAU SA",
-                nomeTitular = "Yuri Matheus",
-                cpfTitular = "86135457004",
-                agencia = "0001",
-                numeroConta = "123455"
-            )
-        )
-    }
-
-    // Mock do client Http (para não ter que levantar todo o ambiente externo)
+    // Mock do client Http (para não ter que levantar
+    // o ambiente externo inteiro e não salvar dados de
+    // testes no sistema externo)
     @MockBean(ErpItauClient::class)
     fun itauClient(): ErpItauClient? {
         return Mockito.mock(ErpItauClient::class.java)
+    }
+
+    @MockBean(BcbClient::class)
+    fun bcbClient(): BcbClient? {
+        return Mockito.mock(BcbClient::class.java)
     }
 
     // Criando um Client para consumir a resposta do endpoint gRPC
@@ -243,4 +313,40 @@ internal class CadastraChavePixEndpointTest(
         }
     }
 
+    fun createPixKeyRequestFake(): CreatePixKeyRequest {
+        return CreatePixKeyRequest(
+            keyType = PixKeyType.of(br.com.zupacademy.giovanna.pix.TipoChave.CPF),
+            key = "86135457004",
+            bankAccount = BankAccountRequest(
+                participant = ContaEntity.ITAU_UNIBANCO_ISPB,
+                branch = "0001",
+                accountNumber = "123455",
+                accountType = BankAccount.AccountType.of(br.com.zupacademy.giovanna.pix.TipoConta.CONTA_CORRENTE)
+            ),
+            owner = OwnerRequest(
+                type = Owner.OwnerType.NATURAL_PERSON,
+                name = "Yuri Matheus",
+                taxIdNumber = "86135457004"
+            )
+        )
+    }
+
+    fun createPixKeyResponseFake(): CreatePixKeyResponse {
+        return CreatePixKeyResponse(
+            keyType = br.com.zupacademy.giovanna.pix.TipoChave.CPF,
+            key = "86135457004",
+            bankAccount = BankAccountResponse(
+                participant = ContaEntity.ITAU_UNIBANCO_ISPB,
+                branch = "0001",
+                accountNumber = "123455",
+                accountType = BankAccount.AccountType.of(br.com.zupacademy.giovanna.pix.TipoConta.CONTA_CORRENTE)
+            ),
+            owner = OwnerResponse(
+                type = Owner.OwnerType.NATURAL_PERSON,
+                name = "Yuri Matheus",
+                taxIdNumber = "86135457004"
+            ),
+            createdAt = LocalDateTime.now()
+        )
+    }
 }

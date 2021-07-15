@@ -2,11 +2,13 @@ package br.com.zupacademy.giovanna.pix.remocao
 
 import br.com.zupacademy.giovanna.PixKeyExclusionManagerServiceGrpc
 import br.com.zupacademy.giovanna.RemoveChavePixRequest
-import br.com.zupacademy.giovanna.pix.TipoConta
 import br.com.zupacademy.giovanna.conta.ContaEntity
-import br.com.zupacademy.giovanna.pix.ChavePixEntity
+import br.com.zupacademy.giovanna.externos.bcb.BcbClient
+import br.com.zupacademy.giovanna.externos.bcb.DeletePixKeyRequest
+import br.com.zupacademy.giovanna.externos.bcb.DeletePixKeyResponse
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
 import br.com.zupacademy.giovanna.pix.TipoChave
+import br.com.zupacademy.giovanna.util.KeyGenerator
 import br.com.zupacademy.giovanna.util.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -15,15 +17,22 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
-import io.micronaut.test.annotation.TransactionMode
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import java.time.LocalDateTime
 import java.util.*
+import javax.inject.Inject
 
 @MicronautTest(transactional = false)
 internal class RemoveChavePixEndpointTest(
@@ -31,34 +40,40 @@ internal class RemoveChavePixEndpointTest(
     val grpcClient: PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceBlockingStub
 ) {
 
-    companion object {
-        val CLIENTE_ID = UUID.randomUUID()
-    }
+    @Inject
+    lateinit var bcbClient: BcbClient
 
-    val chave = chaveFake()
+    val chaveFake = KeyGenerator(
+        tipoChave = TipoChave.CPF,
+        valorChave = "86135457004"
+    ).geraChave()
 
     @BeforeEach
     internal fun setUp() {
         repository.deleteAll()
-        repository.save(chave)
+        repository.save(chaveFake)
     }
 
     /* Happy path :) */
 
     @Test
     fun `deve excluir chave quando chave existir e pertencer ao cliente`() {
+        // cenário
+        Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
+            .thenReturn(HttpResponse.ok(deletePixKeyResponseFake()))
+
         // ação
         val response = grpcClient.remove(
             RemoveChavePixRequest.newBuilder()
-                .setClienteId(chave.clienteId.toString())
-                .setPixId(chave.id.toString())
+                .setClienteId(chaveFake.clienteId.toString())
+                .setPixId(chaveFake.id.toString())
                 .build()
         )
 
         // validação
         with(response) {
             assertTrue(removido)
-            assertTrue(repository.findById(chave.id).isEmpty)
+            assertTrue(repository.findById(chaveFake.id).isEmpty)
         }
     }
 
@@ -71,7 +86,7 @@ internal class RemoveChavePixEndpointTest(
         val thrown = assertThrows<StatusRuntimeException> {
             grpcClient.remove(
                 RemoveChavePixRequest.newBuilder()
-                    .setClienteId(chave.clienteId.toString())
+                    .setClienteId(chaveFake.clienteId.toString())
                     .setPixId(pixIdInexistente)
                     .build()
             )
@@ -94,7 +109,7 @@ internal class RemoveChavePixEndpointTest(
             grpcClient.remove(
                 RemoveChavePixRequest.newBuilder()
                     .setClienteId(clienteDiferenteId)
-                    .setPixId(chave.id.toString())
+                    .setPixId(chaveFake.id.toString())
                     .build()
             )
         }
@@ -131,20 +146,80 @@ internal class RemoveChavePixEndpointTest(
         }
     }
 
-    private fun chaveFake(): ChavePixEntity {
-        return ChavePixEntity(
-            clienteId = CLIENTE_ID,
-            tipoChave = TipoChave.CPF,
-            valorChave = "86135457004",
-            tipoConta = TipoConta.CONTA_CORRENTE,
-            conta = ContaEntity(
-                nomeInstituicao = "UNIBANCO ITAU SA",
-                nomeTitular = "Yuri Matheus",
-                cpfTitular = "86135457004",
-                agencia = "0001",
-                numeroConta = "123455"
+    @Test
+    fun `nao deve excluir chave quando proibido deletar no sistema externo`() {
+        // cenário
+        Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
+            .thenThrow(HttpClientResponseException("Proibido realizar operação", HttpResponse.status<HttpStatus>(HttpStatus.FORBIDDEN)))
+
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.remove(
+                RemoveChavePixRequest.newBuilder()
+                    .setClienteId(chaveFake.clienteId.toString())
+                    .setPixId(chaveFake.id.toString())
+                    .build()
             )
-        )
+        }
+
+        // validação
+        with(thrown) {
+            assertTrue(repository.existsByValorChave(chaveFake.valorChave))
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Proibido realizar operação no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
+
+    @Test
+    fun `nao deve excluir chave quando chave não encontrada no sistema externo`() {
+        // cenário
+        Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
+            .thenThrow(HttpClientResponseException("Chave pix não encontrada", HttpResponse.status<HttpStatus>(HttpStatus.NOT_FOUND)))
+
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.remove(
+                RemoveChavePixRequest.newBuilder()
+                    .setClienteId(chaveFake.clienteId.toString())
+                    .setPixId(chaveFake.id.toString())
+                    .build()
+            )
+        }
+
+        // validação
+        with(thrown) {
+            assertTrue(repository.existsByValorChave(chaveFake.valorChave))
+            assertEquals(Status.NOT_FOUND.code, status.code)
+            assertEquals("Chave pix não encontrada no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
+
+    @Test
+    fun `nao deve excluir chave quando excecao inesperada no sistema externo`() {
+        // cenário
+        Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
+            .thenThrow(HttpClientResponseException("Erro inesperado", HttpResponse.status<HttpStatus>(HttpStatus.EXPECTATION_FAILED)))
+
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.remove(
+                RemoveChavePixRequest.newBuilder()
+                    .setClienteId(chaveFake.clienteId.toString())
+                    .setPixId(chaveFake.id.toString())
+                    .build()
+            )
+        }
+
+        // validação
+        with(thrown) {
+            assertEquals("Erro ao remover chave Pix no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
+
+
+    @MockBean(BcbClient::class)
+    fun bcbClient(): BcbClient? {
+        return Mockito.mock(BcbClient::class.java)
     }
 
     // Criando um Client para consumir a resposta do endpoint gRPC
@@ -154,5 +229,15 @@ internal class RemoveChavePixEndpointTest(
         fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceBlockingStub {
             return PixKeyExclusionManagerServiceGrpc.newBlockingStub(channel)
         }
+    }
+
+    fun deletePixKeyRequestFake() = DeletePixKeyRequest(key = "86135457004")
+
+    fun deletePixKeyResponseFake(): DeletePixKeyResponse {
+        return DeletePixKeyResponse(
+            key = "86135457004",
+            participant = ContaEntity.ITAU_UNIBANCO_ISPB,
+            deletedAt = LocalDateTime.now()
+        )
     }
 }

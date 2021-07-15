@@ -34,14 +34,14 @@ class GerenciadorExclusaoChavePix(
         try {
             val key = chaveEncontrada.valorChave
             val bcbResponse = bcbClient.delete(key, DeletePixKeyRequest(key))
-            if(bcbResponse.status.equals(HttpStatus.OK)) {
+            if (bcbResponse.status.equals(HttpStatus.OK)) {
                 // só remove se conseguir remover do BCB
                 chavePixRepository.deleteById(pixId)
             }
-        } catch (e: HttpClientResponseException){
-            when(e.status) {
+        } catch (e: HttpClientResponseException) {
+            when (e.status) {
                 HttpStatus.FORBIDDEN -> throw IllegalStateException("Proibido realizar operação no Banco Central do Brasil (BCB)")
-                HttpStatus.NOT_FOUND -> throw ChavePixNaoEncontradaException("Chave pix não encontrada no Banco Central do Brasil (BCB) ")
+                HttpStatus.NOT_FOUND -> throw ChavePixNaoEncontradaException("Chave pix não encontrada no Banco Central do Brasil (BCB)")
                 else -> throw IllegalStateException("Erro ao remover chave Pix no Banco Central do Brasil (BCB)")
             }
         }

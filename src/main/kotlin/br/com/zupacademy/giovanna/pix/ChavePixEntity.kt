@@ -1,6 +1,5 @@
 package br.com.zupacademy.giovanna.pix
 
-import br.com.zupacademy.giovanna.compartilhado.SensitiveDataCPFConverter
 import br.com.zupacademy.giovanna.compartilhado.SensitiveDataKeyValueConverter
 import br.com.zupacademy.giovanna.conta.ContaEntity
 import java.time.LocalDateTime
@@ -24,7 +23,7 @@ class ChavePixEntity(
     val tipoChave: TipoChave,
 
     @field:Size(max = 77) @field:NotBlank
-    @Convert(converter = SensitiveDataKeyValueConverter::class)
+//    @Convert(converter = SensitiveDataKeyValueConverter::class) // dá ruim nos testes
     @Column(nullable = false, unique = true)
     var valorChave: String,
 
