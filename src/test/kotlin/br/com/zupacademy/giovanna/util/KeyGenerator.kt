@@ -1,11 +1,9 @@
 package br.com.zupacademy.giovanna.util
 
 import br.com.zupacademy.giovanna.conta.ContaEntity
-import br.com.zupacademy.giovanna.externos.bcb.*
 import br.com.zupacademy.giovanna.pix.ChavePixEntity
 import br.com.zupacademy.giovanna.pix.TipoChave
 import br.com.zupacademy.giovanna.pix.TipoConta
-import java.time.LocalDateTime
 import java.util.*
 
 data class KeyGenerator(
@@ -34,6 +32,4 @@ data class KeyGenerator(
             )
         )
     }
-
-
 }

@@ -29,9 +29,13 @@ class CadastraChavePixEndpoint(val gerenciadorCadastroChavePix: GerenciadorCadas
         logger.info("chavePìxCadastrada: $chavePixCadastrada")
 
         // retornar uma resposta
-        responseObserver.onNext(CadastraChavePixResponse.newBuilder()
-            .setPixId(chavePixCadastrada.id.toString()).build())
-        responseObserver.onCompleted()
+        with(responseObserver) {
+            logger.info("chavePìxCadastrada: $chavePixCadastrada")
+
+            onNext(CadastraChavePixResponse.newBuilder()
+                .setPixId(chavePixCadastrada.id.toString()).build())
+            onCompleted()
+        }
 
     }
 }

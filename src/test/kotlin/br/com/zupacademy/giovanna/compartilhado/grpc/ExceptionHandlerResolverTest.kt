@@ -1,6 +1,5 @@
 package br.com.zupacademy.giovanna.compartilhado.grpc
 
-import br.com.zupacademy.giovanna.compartilhado.grpc.handlers.ConstraintViolationExceptionHandler
 import br.com.zupacademy.giovanna.compartilhado.grpc.handlers.DefaultExceptionHandler
 import io.grpc.Status
 import org.junit.jupiter.api.Assertions.*
@@ -38,7 +37,7 @@ internal class ExceptionHandlerResolverTest{
     @Test
     fun `deve alterar o ExceptionHandler padrao e retorna-lo quando nenhum handler suportar o tipo da excecao`() {
 
-        var testeExceptionHandler = TesteExceptionHandler()
+        val testeExceptionHandler = TesteExceptionHandler()
         resolver = ExceptionHandlerResolver(handlers = listOf(testeExceptionHandler), defaultHanlder = testeExceptionHandler)
 
         val resolved = resolver.resolve(RuntimeException())

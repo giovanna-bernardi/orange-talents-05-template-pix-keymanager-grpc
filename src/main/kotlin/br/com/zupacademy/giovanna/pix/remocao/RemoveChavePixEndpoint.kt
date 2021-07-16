@@ -5,19 +5,17 @@ import br.com.zupacademy.giovanna.RemoveChavePixRequest
 import br.com.zupacademy.giovanna.RemoveChavePixResponse
 import br.com.zupacademy.giovanna.compartilhado.grpc.ErrorHandler
 import io.grpc.stub.StreamObserver
-import org.slf4j.LoggerFactory
 import javax.inject.Singleton
 
 @Singleton
 @ErrorHandler
 class RemoveChavePixEndpoint (private val gerenciadorExclusaoChavePix: GerenciadorExclusaoChavePix) : PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceImplBase() {
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun remove(request: RemoveChavePixRequest, responseObserver: StreamObserver<RemoveChavePixResponse>) {
         val chaveRequest = request.toChaveRemocaoRequest()
 
         // validar e excluir do banco
-        val chavePixCadastrada = gerenciadorExclusaoChavePix.tentaExcluir(chaveRequest)
+        gerenciadorExclusaoChavePix.tentaExcluir(chaveRequest)
 
         responseObserver.onNext(RemoveChavePixResponse.newBuilder()
             .setRemovido(true)

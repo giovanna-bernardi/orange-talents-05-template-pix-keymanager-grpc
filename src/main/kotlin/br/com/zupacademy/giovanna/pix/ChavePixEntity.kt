@@ -54,7 +54,11 @@ class ChavePixEntity(
     }
 
     fun isRandom(): Boolean {
-        return tipoChave.equals(TipoChave.ALEATORIA)
+        return tipoChave == TipoChave.ALEATORIA
+    }
+
+    fun belongsTo(clienteId: UUID) : Boolean{
+        return this.clienteId == clienteId
     }
 
     override fun toString(): String {

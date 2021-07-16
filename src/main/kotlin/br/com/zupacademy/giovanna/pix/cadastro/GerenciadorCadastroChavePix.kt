@@ -3,16 +3,13 @@ package br.com.zupacademy.giovanna.pix.cadastro
 import br.com.zupacademy.giovanna.excecoes.ChavePixExistenteException
 import br.com.zupacademy.giovanna.externos.bcb.BcbClient
 import br.com.zupacademy.giovanna.externos.bcb.CreatePixKeyRequest
-import br.com.zupacademy.giovanna.externos.bcb.CreatePixKeyResponse
 import br.com.zupacademy.giovanna.externos.itau.ErpItauClient
 import br.com.zupacademy.giovanna.pix.ChavePixEntity
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.validation.Validated
-import org.slf4j.LoggerFactory
 import javax.inject.Singleton
-import javax.transaction.Transactional
 import javax.validation.Valid
 
 @Validated
@@ -22,8 +19,6 @@ class GerenciadorCadastroChavePix(
     val itauClient: ErpItauClient,
     val bcbClient: BcbClient
 ) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun tentaCadastrar(@Valid novaChavePixRequest: NovaChavePixRequest): ChavePixEntity {
 

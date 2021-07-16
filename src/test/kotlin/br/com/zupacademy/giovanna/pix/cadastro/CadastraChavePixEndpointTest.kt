@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.time.LocalDateTime
-import java.util.*
 import javax.inject.Inject
 import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
 
@@ -41,8 +40,8 @@ import br.com.zupacademy.giovanna.pix.TipoChave as TipoDeChave
 
 @MicronautTest(transactional = false)
 internal class CadastraChavePixEndpointTest(
-    val repository: ChavePixRepository,
-    val grpcClient: PixKeyRegistrationManagerServiceGrpc.PixKeyRegistrationManagerServiceBlockingStub
+    private val repository: ChavePixRepository,
+    private val grpcClient: PixKeyRegistrationManagerServiceGrpc.PixKeyRegistrationManagerServiceBlockingStub
 ) {
 
     // Teste de integração. Testando com o cliente Http.
@@ -313,7 +312,7 @@ internal class CadastraChavePixEndpointTest(
         }
     }
 
-    fun createPixKeyRequestFake(): CreatePixKeyRequest {
+    private fun createPixKeyRequestFake(): CreatePixKeyRequest {
         return CreatePixKeyRequest(
             keyType = PixKeyType.of(br.com.zupacademy.giovanna.pix.TipoChave.CPF),
             key = "86135457004",
@@ -331,7 +330,7 @@ internal class CadastraChavePixEndpointTest(
         )
     }
 
-    fun createPixKeyResponseFake(): CreatePixKeyResponse {
+    private fun createPixKeyResponseFake(): CreatePixKeyResponse {
         return CreatePixKeyResponse(
             keyType = br.com.zupacademy.giovanna.pix.TipoChave.CPF,
             key = "86135457004",

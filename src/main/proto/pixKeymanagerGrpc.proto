@@ -6,12 +6,18 @@ option java_outer_classname = "PixKeymanagerGrpc";
 
 package br.com.zupacademy.giovanna;
 
+import "google/protobuf/timestamp.proto";
+
 service PixKeyRegistrationManagerService {
   rpc cadastra (CadastraChavePixRequest) returns (CadastraChavePixResponse) {}
 }
 
 service PixKeyExclusionManagerService {
   rpc remove (RemoveChavePixRequest) returns (RemoveChavePixResponse) {}
+}
+
+service PixKeyDetailManagerService {
+  rpc consulta (DetalheChavePixRequest) returns (DetalheChavePixResponse){}
 }
 
 enum TipoConta {
@@ -52,4 +58,46 @@ message RemoveChavePixRequest {
 
 message RemoveChavePixResponse {
   bool removido = 1;
+}
+
+/**
+* Detalha a chave
+*/
+
+message DetalheChavePixRequest {
+  message KeyManager {
+    string pixId = 1;
+    string clienteId = 2;
+  }
+
+  // usuário só pode passar um deles.
+  // Dá para acessar como: tipoConsultaCase.SISTEMA_INTERNO
+  oneof tipoConsulta {
+    KeyManager sistemaInterno = 1; // por pixId e clienteId
+    string valorChave = 2; // por valor da chave
+  }
+}
+
+message DetalheChavePixResponse {
+
+  message ChaveInfo{
+
+    message ContaInfo{
+      string nomeTitular = 1;
+      string cpfTitular = 2;
+      string instituicao = 3;
+      string agencia = 4;
+      string numeroConta = 5;
+      TipoConta tipoConta = 6;
+    }
+
+    TipoChave tipoChave = 1;
+    string valorChave = 2;
+    ContaInfo conta = 3;
+    google.protobuf.Timestamp dataCadastro = 4;
+  }
+
+  string pixId = 1;
+  string clienteId = 2;
+  ChaveInfo chave = 3;
 }

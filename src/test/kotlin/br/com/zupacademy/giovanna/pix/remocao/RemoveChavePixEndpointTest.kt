@@ -24,8 +24,7 @@ import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -36,14 +35,14 @@ import javax.inject.Inject
 
 @MicronautTest(transactional = false)
 internal class RemoveChavePixEndpointTest(
-    val repository: ChavePixRepository,
-    val grpcClient: PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceBlockingStub
+    private val repository: ChavePixRepository,
+    private val grpcClient: PixKeyExclusionManagerServiceGrpc.PixKeyExclusionManagerServiceBlockingStub
 ) {
 
     @Inject
     lateinit var bcbClient: BcbClient
 
-    val chaveFake = KeyGenerator(
+    private val chaveFake = KeyGenerator(
         tipoChave = TipoChave.CPF,
         valorChave = "86135457004"
     ).geraChave()
@@ -73,7 +72,7 @@ internal class RemoveChavePixEndpointTest(
         // validação
         with(response) {
             assertTrue(removido)
-            assertTrue(repository.findById(chaveFake.id).isEmpty)
+            assertTrue(repository.findById(chaveFake.id!!).isEmpty)
         }
     }
 
@@ -150,7 +149,12 @@ internal class RemoveChavePixEndpointTest(
     fun `nao deve excluir chave quando proibido deletar no sistema externo`() {
         // cenário
         Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
-            .thenThrow(HttpClientResponseException("Proibido realizar operação", HttpResponse.status<HttpStatus>(HttpStatus.FORBIDDEN)))
+            .thenThrow(
+                HttpClientResponseException(
+                    "Proibido realizar operação",
+                    HttpResponse.status<HttpStatus>(HttpStatus.FORBIDDEN)
+                )
+            )
 
         // ação
         val thrown = assertThrows<StatusRuntimeException> {
@@ -171,34 +175,39 @@ internal class RemoveChavePixEndpointTest(
     }
 
     @Test
-    fun `nao deve excluir chave quando chave não encontrada no sistema externo`() {
+    fun `deve excluir chave quando chave nao encontrada no sistema externo`() {
         // cenário
         Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
-            .thenThrow(HttpClientResponseException("Chave pix não encontrada", HttpResponse.status<HttpStatus>(HttpStatus.NOT_FOUND)))
+            .thenThrow(
+                HttpClientResponseException(
+                    "Chave pix não encontrada",
+                    HttpResponse.status<HttpStatus>(HttpStatus.NOT_FOUND)
+                )
+            )
 
         // ação
-        val thrown = assertThrows<StatusRuntimeException> {
-            grpcClient.remove(
-                RemoveChavePixRequest.newBuilder()
-                    .setClienteId(chaveFake.clienteId.toString())
-                    .setPixId(chaveFake.id.toString())
-                    .build()
-            )
-        }
+        grpcClient.remove(
+            RemoveChavePixRequest.newBuilder()
+                .setClienteId(chaveFake.clienteId.toString())
+                .setPixId(chaveFake.id.toString())
+                .build()
+        )
 
         // validação
-        with(thrown) {
-            assertTrue(repository.existsByValorChave(chaveFake.valorChave))
-            assertEquals(Status.NOT_FOUND.code, status.code)
-            assertEquals("Chave pix não encontrada no Banco Central do Brasil (BCB)", status.description)
-        }
+        assertFalse(repository.existsById(chaveFake.id!!))
+
     }
 
     @Test
     fun `nao deve excluir chave quando excecao inesperada no sistema externo`() {
         // cenário
         Mockito.`when`(bcbClient.delete(key = "86135457004", request = deletePixKeyRequestFake()))
-            .thenThrow(HttpClientResponseException("Erro inesperado", HttpResponse.status<HttpStatus>(HttpStatus.EXPECTATION_FAILED)))
+            .thenThrow(
+                HttpClientResponseException(
+                    "Erro inesperado",
+                    HttpResponse.status<HttpStatus>(HttpStatus.EXPECTATION_FAILED)
+                )
+            )
 
         // ação
         val thrown = assertThrows<StatusRuntimeException> {
@@ -231,9 +240,9 @@ internal class RemoveChavePixEndpointTest(
         }
     }
 
-    fun deletePixKeyRequestFake() = DeletePixKeyRequest(key = "86135457004")
+    private fun deletePixKeyRequestFake() = DeletePixKeyRequest(key = "86135457004")
 
-    fun deletePixKeyResponseFake(): DeletePixKeyResponse {
+    private fun deletePixKeyResponseFake(): DeletePixKeyResponse {
         return DeletePixKeyResponse(
             key = "86135457004",
             participant = ContaEntity.ITAU_UNIBANCO_ISPB,
