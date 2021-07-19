@@ -6,7 +6,7 @@ import br.com.zupacademy.giovanna.pix.TipoChave
 import br.com.zupacademy.giovanna.pix.TipoConta
 import java.util.*
 
-data class KeyGenerator(
+data class PixKeyGenerator(
     var clienteId: UUID = CLIENTE_ID,
     var tipoChave: TipoChave = TipoChave.EMAIL,
     var valorChave: String = "teste@teste.com.br",
@@ -17,7 +17,7 @@ data class KeyGenerator(
         val CLIENTE_ID = UUID.randomUUID()
     }
 
-    fun geraChave(): ChavePixEntity {
+    fun generateKey(): ChavePixEntity {
         return ChavePixEntity(
             clienteId = clienteId,
             tipoChave = tipoChave,

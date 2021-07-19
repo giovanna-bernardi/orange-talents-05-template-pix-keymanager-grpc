@@ -22,11 +22,6 @@ class GerenciadorCadastroChavePix(
 
     fun tentaCadastrar(@Valid novaChavePixRequest: NovaChavePixRequest): ChavePixEntity {
 
-        /* Criei uma anotação "UniqueValue" sobre o valor da chave, mas
-        * não gostei da forma como ficou no handler (usando PropertyNode
-        * do ConstraintViolation). Fica ruim de separar as mensagens quando
-        * tem erro de validação e de chave já existente. */
-
         // Verifica se chave já existe no banco
         if (chavePixRepository.existsByValorChave(novaChavePixRequest.valorChave))
             throw ChavePixExistenteException("A chave Pix '${novaChavePixRequest.valorChave}' já existe no banco")

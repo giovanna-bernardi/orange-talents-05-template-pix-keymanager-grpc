@@ -8,7 +8,7 @@ import br.com.zupacademy.giovanna.externos.bcb.DeletePixKeyRequest
 import br.com.zupacademy.giovanna.externos.bcb.DeletePixKeyResponse
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
 import br.com.zupacademy.giovanna.pix.TipoChave
-import br.com.zupacademy.giovanna.util.KeyGenerator
+import br.com.zupacademy.giovanna.util.PixKeyGenerator
 import br.com.zupacademy.giovanna.util.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -42,10 +42,10 @@ internal class RemoveChavePixEndpointTest(
     @Inject
     lateinit var bcbClient: BcbClient
 
-    private val chaveFake = KeyGenerator(
+    private val chaveFake = PixKeyGenerator(
         tipoChave = TipoChave.CPF,
         valorChave = "86135457004"
-    ).geraChave()
+    ).generateKey()
 
     @BeforeEach
     internal fun setUp() {

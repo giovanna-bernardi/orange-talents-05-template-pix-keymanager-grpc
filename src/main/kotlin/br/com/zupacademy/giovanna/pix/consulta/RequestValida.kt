@@ -12,7 +12,8 @@ import java.util.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
-// sealed classes: can't be extended in code
+// sealed classes: enum com mais poder
+// suporta herança, mas as classes filhas têm que estar dentro do mesmo arquivo que ela
 @Introspected
 sealed class RequestValida {
     abstract fun busca(repository: ChavePixRepository, bcbClient: BcbClient): DetalheChaveResponse
@@ -35,10 +36,7 @@ sealed class RequestValida {
     }
 
     @Introspected
-    data class ComValorChave(
-        @field:NotBlank @field:Size(max = 77)
-        val valorChave: String
-    ) : RequestValida() {
+    data class ComValorChave(@field:NotBlank @field:Size(max = 77)val valorChave: String) : RequestValida() {
 
         private val LOGGER = LoggerFactory.getLogger(this::class.java)
 

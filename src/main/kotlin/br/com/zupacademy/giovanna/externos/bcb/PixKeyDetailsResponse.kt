@@ -1,6 +1,7 @@
 package br.com.zupacademy.giovanna.externos.bcb
 
 import br.com.zupacademy.giovanna.conta.ContaEntity
+import br.com.zupacademy.giovanna.pix.Instituicoes
 import br.com.zupacademy.giovanna.pix.TipoConta
 import br.com.zupacademy.giovanna.pix.consulta.DetalheChaveResponse
 import java.time.LocalDateTime
@@ -22,7 +23,7 @@ data class PixKeyDetailsResponse(
                 BankAccount.AccountType.SVGS -> TipoConta.CONTA_POUPANCA
             },
             conta = ContaEntity(
-                nomeInstituicao = bankAccount.participant,
+                nomeInstituicao = Instituicoes.nome(bankAccount.participant),
                 nomeTitular = owner.name,
                 cpfTitular = owner.taxIdNumber,
                 agencia = bankAccount.branch,

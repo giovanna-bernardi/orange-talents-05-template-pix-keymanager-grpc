@@ -8,8 +8,8 @@ import br.com.zupacademy.giovanna.conta.TitularResponse
 import br.com.zupacademy.giovanna.externos.bcb.*
 import br.com.zupacademy.giovanna.externos.itau.ErpItauClient
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
-import br.com.zupacademy.giovanna.util.KeyGenerator
-import br.com.zupacademy.giovanna.util.KeyGenerator.Companion.CLIENTE_ID
+import br.com.zupacademy.giovanna.util.PixKeyGenerator
+import br.com.zupacademy.giovanna.util.PixKeyGenerator.Companion.CLIENTE_ID
 import br.com.zupacademy.giovanna.util.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -88,6 +88,7 @@ internal class CadastraChavePixEndpointTest(
         // Validação
         with(response) {
             assertNotNull(pixId)
+            assertTrue(repository.existsByValorChave("86135457004"))
         }
     }
 
@@ -96,10 +97,10 @@ internal class CadastraChavePixEndpointTest(
     @Test
     fun `nao deve cadastrar chave pix quando chave existente`() {
         // Cenário - Salvar uma chave no banco
-        val chaveFake = KeyGenerator(
+        val chaveFake = PixKeyGenerator(
             tipoChave = TipoDeChave.CPF,
             valorChave = "86135457004"
-        ).geraChave()
+        ).generateKey()
 
         repository.save(chaveFake)
 
