@@ -20,6 +20,10 @@ service PixKeyDetailManagerService {
   rpc consulta (DetalheChavePixRequest) returns (DetalheChavePixResponse){}
 }
 
+service PixKeyListManagerService {
+  rpc lista (ListaChavePixRequest) returns (ListaChavePixResponse){}
+}
+
 enum TipoConta {
   UNKNOWN_CONTA = 0;
   CONTA_CORRENTE = 1;
@@ -100,4 +104,25 @@ message DetalheChavePixResponse {
   string pixId = 1;
   string clienteId = 2;
   ChaveInfo chave = 3;
+}
+
+/**
+* Listas chaves de um cliente
+*/
+
+message ListaChavePixRequest {
+  string clienteId = 1;
+}
+
+message ListaChavePixResponse {
+  message ChavePix {
+    string pixId = 1;
+    TipoChave tipoChave = 2;
+    string valorChave = 3;
+    TipoConta tipoConta = 4;
+    google.protobuf.Timestamp dataCadastro = 5;
+  }
+
+  string clienteId = 1;
+  repeated ChavePix chaves = 2;
 }
