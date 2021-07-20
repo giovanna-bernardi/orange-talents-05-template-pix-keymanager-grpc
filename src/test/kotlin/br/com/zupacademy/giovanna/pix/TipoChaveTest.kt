@@ -46,7 +46,7 @@ internal class TipoChaveTest {
         @Test
         fun `nao deve ser valido se tipo CPF e chave for um CPF invalido`() {
             with(TipoChave.CPF) {
-                assertFalse(valida("11111111113"))
+                assertFalse(valida("11111111111"))
             }
         }
     }

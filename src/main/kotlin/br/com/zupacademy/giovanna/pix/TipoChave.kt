@@ -1,7 +1,7 @@
 package br.com.zupacademy.giovanna.pix
 
+import br.com.caelum.stella.validation.CPFValidator
 import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator
-import org.hibernate.validator.internal.constraintvalidators.hv.br.CPFValidator
 
 enum class TipoChave {
     CPF{
@@ -15,10 +15,7 @@ enum class TipoChave {
                 return false
             }
 
-            return CPFValidator().run {
-                initialize(null)
-                isValid(chave, null)
-            }
+            return CPFValidator(false).invalidMessagesFor(chave).isEmpty()
         }
     },
 

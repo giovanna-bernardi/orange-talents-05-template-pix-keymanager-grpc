@@ -7,6 +7,7 @@ import br.com.zupacademy.giovanna.pix.ChavePixRepository
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.validation.Validated
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Singleton
 import javax.validation.Valid
@@ -18,10 +19,14 @@ class GerenciadorExclusaoChavePix(
     val bcbClient: BcbClient
 ) {
 
+    private val LOGGER = LoggerFactory.getLogger(this::class.java)
+
     fun tentaExcluir(@Valid chaveRemocaoRequest: ChaveRemocaoRequest) {
 
         val pixId = UUID.fromString(chaveRemocaoRequest.pixId)
         val clienteId = UUID.fromString(chaveRemocaoRequest.clienteId)
+
+        LOGGER.info("[$clienteId] removendo uma chave pix com $pixId")
 
         // buscar chave no banco (se não existir, retorna not_found com mensagem amigável)
         val chaveEncontrada = chavePixRepository.findByIdAndClienteId(pixId, clienteId)

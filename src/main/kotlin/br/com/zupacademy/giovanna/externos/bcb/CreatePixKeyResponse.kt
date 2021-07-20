@@ -1,10 +1,9 @@
 package br.com.zupacademy.giovanna.externos.bcb
 
-import br.com.zupacademy.giovanna.pix.TipoChave
 import java.time.LocalDateTime
 
 data class CreatePixKeyResponse(
-  val keyType: TipoChave,
+  val keyType: PixKeyType,
   val key: String,
   val bankAccount: BankAccountResponse,
   val owner: OwnerResponse,

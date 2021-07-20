@@ -333,7 +333,7 @@ internal class CadastraChavePixEndpointTest(
 
     private fun createPixKeyResponseFake(): CreatePixKeyResponse {
         return CreatePixKeyResponse(
-            keyType = br.com.zupacademy.giovanna.pix.TipoChave.CPF,
+            keyType = PixKeyType.CPF,
             key = "86135457004",
             bankAccount = BankAccountResponse(
                 participant = ContaEntity.ITAU_UNIBANCO_ISPB,

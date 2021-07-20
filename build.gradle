@@ -45,6 +45,7 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
+    implementation("br.com.caelum.stella:caelum-stella-core:2.1.2")
     implementation("io.micronaut.xml:micronaut-jackson-xml")
     // https://mvnrepository.com/artifact/org.jasypt/jasypt
     implementation("org.jasypt:jasypt:1.9.3")
