@@ -10,14 +10,14 @@ grpc:
 
 datasources:
   default:
-    url: ${DB_URL:`jdbc:postgresql://localhost:5432/pixkeymanager`}
+    url: ${DB_URI:`jdbc:postgresql://localhost:5432/pixkeymanager`}
     driverClassName: org.postgresql.Driver
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
     schema-generate: CREATE_DROP
     dialect: POSTGRES
 
-jpa.default.properties.hibernate.hbm2ddl.auto: create-drop
+jpa.default.properties.hibernate.hbm2ddl.auto: update
 jpa.default.properties.hibernate.show_sql: true
 jpa.default.properties.hibernate.format_sql: true
 

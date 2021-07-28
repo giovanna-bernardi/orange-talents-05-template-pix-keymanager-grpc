@@ -2,7 +2,6 @@ package br.com.zupacademy.giovanna.pix.lista
 
 import br.com.zupacademy.giovanna.ListaChavePixRequest
 import br.com.zupacademy.giovanna.PixKeyListManagerServiceGrpc
-import br.com.zupacademy.giovanna.PixKeyRegistrationManagerServiceGrpc
 import br.com.zupacademy.giovanna.pix.ChavePixRepository
 import br.com.zupacademy.giovanna.pix.TipoChave
 import br.com.zupacademy.giovanna.util.PixKeyGenerator
@@ -15,14 +14,15 @@ import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.hamcrest.Matchers.hasSize
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.*
-import javax.inject.Inject
 
 @MicronautTest(transactional = false)
 internal class ListaChavePixEndpointTest(

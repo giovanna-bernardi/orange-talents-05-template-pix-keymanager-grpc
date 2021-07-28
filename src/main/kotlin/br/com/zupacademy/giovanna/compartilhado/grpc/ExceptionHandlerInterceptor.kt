@@ -22,6 +22,7 @@ class ExceptionHandlerInterceptor(private val resolver: ExceptionHandlerResolver
         } catch (ex: Exception) {
             logger.error("Handling the exception '${ex.javaClass.name}' while processing the call: ${context.targetMethod}", ex)
 
+            @Suppress("UNCHECKED_CAST")
             val handler = resolver.resolve(ex) as ExceptionHandler<Exception>
             val status = handler.handle(ex)
 
