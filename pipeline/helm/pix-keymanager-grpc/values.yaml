@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: public.ecr.aws/d8b2x5c9/pix-keymanager-grpc # url para poder baixar a imagem de acordo com as especificações
+  repository: public.ecr.aws/i2c7a5l2/giovanna/orange-talents-05-template-pix-keymanager-grpc # url para poder baixar a imagem de acordo com as especificações
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
@@ -82,9 +82,9 @@ tolerations: []
 affinity: {}
 
 application:
-  DB_URI: jdbc:postgresql://zup-academy.cepveptihzwe.sa-east-1.rds.amazonaws.com:5432/keymanager_grpc_db
-  DB_USER: keymanager_grpc_user
-  DB_PASSWORD: Ym9RU07srXCM3jX3
+  DB_URI: jdbc:postgresql://giovanna-ot5-db.chpeyn5uxxax.us-east-1.rds.amazonaws.com:5432/giovanna-ot5-db
+  DB_USER: postgres
+  DB_PASSWORD: GGeqH9KLmO4cXZks
   DB_DIALECT: POSTGRES
   ITAU_URL: http://internal-a0056f1bc61dd472ab8af70597036b6c-721953980.sa-east-1.elb.amazonaws.com
   BCB_URL: http://internal-abfe0883c77dd427ab0997441a62306b-1365683537.sa-east-1.elb.amazonaws.com
